@@ -1,19 +1,29 @@
 ---
 title: "Workshop: Introduction to Data Visualization using R"
+subtitle: '`r format(Sys.Date(),format="%d-%b-%Y")`'
 output:
-  html_document:
+  bookdown::html_document2:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+      print: false
+    toc_depth: 4
+    number_sections: true
+    highlight: tango
     df_print: paged
-    
+    code_folding: "show"
+    self_contained: true
+    keep_md: false
+    encoding: 'UTF-8'
+    css: "assets/report.css"
+    staff_web: "https://www.biosustain.dtu.dk/technologies/informatics/data-science-platform"
 ---
-
 <!-- ----------------------- Do not edit above this ----------------------- -->
 
 
 # Introduction to data visualization
 
-# Data Formats
-
-## Special operators
 
 ```{r, include=FALSE, message=FALSE}
 #Libraries
@@ -582,19 +592,14 @@ heatmaply(data,
 
 <!-- --------------------- Do not edit below this ---------------------- -->
 
-<style>
-  body {
-    font-family: 'Arial', sans-serif;
-  }
-  .boxy {
-    background-color: #a1c4fd;
-    padding: 20px;
-    border-radius: 10px;
-  }
-  .boxy-lightbulb {
-    color: #31708f;
- background-color: #d9edf7;
- border-color: #bce8f1;
- border-left-color: #31708f;
-  }
-</style>
+</br>
+
+```{r,child="assets/_footer-lab.Rmd"}
+```
+
+```{r,eval=FALSE,echo=FALSE}
+# manually run this to render this document to HTML
+rmarkdown::render("workshop.Rmd")
+# then run this to convert HTML to PDF (if needed)
+#pagedown::chrome_print("core-report.html",output="core-report.pdf")
+```
