@@ -1,0 +1,600 @@
+---
+title: "Workshop: Introduction to Data Visualization using R"
+output:
+  html_document:
+    df_print: paged
+    
+---
+
+<!-- ----------------------- Do not edit above this ----------------------- -->
+
+
+# Introduction to data visualization
+
+# Data Formats
+
+## Special operators
+
+```{r, include=FALSE, message=FALSE}
+#Libraries
+library(phyloseq)
+library(microbiome)
+library(ggpubr)
+library(grid)
+library(tidyr)
+library(reshape2)
+library(reshape)
+library(ggrepel)
+library(ggh4x)
+library(pheatmap)
+library(RColorBrewer)
+library(patchwork)
+```
+
+
+# Downloading the files and making a Dir called Raw
+
+
+```{r, warning=FALSE, include=FALSE}
+# Define the raw file URLs from the 'main' branch and destination directory
+webpath <- "https://github.com/biosustain/dsp_workshop_datavizR/raw/main/Data/"
+dir.create("./data/raw", recursive = TRUE)
+
+# List of file names to be downloaded
+file_list <- c("01_Alpha_Diversity.tsv", "02_ord_DataFrame.tsv", "03_HeatMap_Exp1_DCs.tsv",
+               "04_HeatMap.rds", "data.csv")
+
+# Loop through the files and download them
+for(i in file_list){
+  download.file(url = paste0(webpath, i), 
+                destfile = paste0("./data/raw/", i))
+}
+
+```
+
+
+
+# Loading the first file
+
+```{r}
+# Load the TSV files
+alpha_info_tab <- read.table("data/raw/01_Alpha_Diversity.tsv", header=T, sep="\t", row.names=1, check.names=T)
+#ord_dataframe <- read.table("data/raw/02_ord_DataFrame.tsv", header = TRUE, sep = "\t")
+#heatmap_exp1 <- read.table("data/raw/03_HeatMap_Exp1_DCs.tsv", header = TRUE, sep = "\t")
+
+# Load the RDS file
+#heatmap_data <- readRDS("data/raw/04_HeatMap.rds")
+
+# Load the CSV file
+#data_csv <- read.csv("data/raw/data.csv")
+
+```
+
+
+# Summary: Sample Information
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#Summary: Sample Information
+
+DT::datatable(data = alpha_info_tab, rownames = TRUE, 
+              extensions = c('Buttons', 'Scroller'), 
+              options = list(dom = 'Bfrtip', buttons = c('copy', 'csv'),
+                             deferRender = TRUE, scrollX = T,
+                             scrollX = T,
+                             scrollY = 200,
+                             scroller = TRUE,
+                             caption = 'Sample Alpha Diversity'))
+```
+
+
+# Filtering the data using Dyplr package
+
+```{r}
+# Load dplyr
+library(dplyr)
+
+# Filter the data for Study == "Exp1"
+alpha_info_tab_filtered <- alpha_info_tab %>%
+  filter(Study == "Exp1")
+
+# View the filtered data
+alpha_info_tab_filtered
+```
+
+
+# BoxPlot
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# Filter for Exp1 and create the boxplot
+alpha_info_tab %>%
+  filter(Study == "Exp1") %>%
+  ggplot(aes(x = Compartment, y = Observed, fill = Compartment)) +
+  geom_boxplot() +
+  #geom_jitter(width = 0.2) +  # Adds individual data points
+  theme_pubr(border = TRUE) +
+  labs(x = "Compartment", y = "Observed") +
+  ggtitle("Boxplot of Observed Values in Exp1 by Compartment") #+
+  #scale_fill_manual(values = cols_compartment)  
+
+```
+
+
+# Sort the compartment and add color
+
+```{r}
+
+# Different ways, by hand is useful for small data
+cols_compartment <- c("Fecal" = "#D46C4E", "AC" = "#77A515", "TC" = "#264D59", "DC" = "#43978D")
+
+
+# Using color brewer
+# Get the unique compartments
+unique_compartments <- unique(alpha_info_tab_filtered$Compartment)
+
+# Automatically generate a color palette (you can use a predefined set or any other color scale)
+cols_compartment_auto <- setNames(
+  RColorBrewer::brewer.pal(length(unique_compartments), "Set3"), 
+  unique_compartments
+)
+```
+
+
+# Plotting
+
+```{r}
+# Filter for Exp1, reorder Compartment, and create the boxplot
+alpha_info_tab %>%
+  filter(Study == "Exp1") %>%
+  mutate(Compartment = factor(Compartment, levels = c("Fecal", "AC", "TC", "DC"))) %>%
+  ggplot(aes(x = Compartment, y = Observed, fill = Compartment)) +
+  geom_boxplot() +
+  theme_pubr(border = TRUE) +
+  labs(x = "Compartment", y = "Observed") +
+  ggtitle("Boxplot of Observed Values in Exp1 by Compartment") +
+  scale_fill_manual(values = cols_compartment)
+  #scale_fill_manual(values = cols_compartment_auto)# Assuming 'cols_compartment' contains your custom colors
+# Saving
+#ggsave("/Users/flb202/Documents/KU/BRIC/Projects/Arnes_Kristina/Results/03_PCAPlot.png", PCAPlot, width = 8.0, height = 5.5)
+```
+
+
+
+
+
+# facet_wrap() funcion, mutate
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+test <- alpha_info_tab %>%
+  filter(Study == "Exp1") %>%  # Filter for Study "Exp1"
+  # Create a new column `Units` that duplicates Fecal for both Unit1 and Unit2
+  bind_rows(
+    alpha_info_tab %>%
+      filter(Compartment == "Fecal") %>%
+      mutate(Units = "Unit1"),
+    alpha_info_tab %>%
+      filter(Compartment == "Fecal") %>%
+      mutate(Units = "Unit2"),
+    alpha_info_tab %>%
+      filter(Compartment != "Fecal") %>%
+      mutate(Units = as.character(Unit))  # Keep original Unit for other compartments
+  ) %>%
+  mutate(Compartment = factor(Compartment, levels = c("Fecal", "AC", "TC", "DC"))) %>%
+  # Remove rows with NA in Compartment or Units columns
+  filter(!is.na(Compartment) & !is.na(Units)) %>%
+  ggplot(aes(x = Compartment, y = Observed, fill = Compartment)) +
+  geom_boxplot() +  # Create the boxplot
+  theme_pubr(border = TRUE) +  # Apply the theme
+  labs(x = "Compartment", y = "Observed") +
+  ggtitle("Boxplot of Observed Values in Exp1 by Compartment and Units") +
+  scale_fill_manual(values = cols_compartment) +  # Apply custom colors
+  facet_wrap(~ Units, scales = "free_x")
+
+```
+
+
+
+
+## Longitudinal
+
+
+
+```{r}
+# Extra
+
+# Define the y-axis scale
+#scales <- scale_y_continuous(limits = c(0, 129))
+
+# Plotting
+alpha_info_tab %>%
+  filter(Study == "Exp1") %>%  # Filter for Exp1
+  gather(key = "metric", value = "value", c("Observed", "Shannon")) %>%  # Reshape data
+  mutate(
+    metric = recode(metric, "Observed" = "Richness", "Shannon" = "Shannon")  # Change names directly in the data
+  ) %>% 
+  
+  ggplot(aes(x = Day, y = value, color = Compartment, group = interaction(Study, Compartment_Unit))) +
+  
+  # Add vertical lines for day intervals
+  geom_vline(xintercept = 1:23, linetype = 'solid', colour = "grey", alpha = 0.3) +
+  
+  # Plot points and lines
+  geom_point(size = 4) +
+  geom_line(aes(linetype = Unit)) +
+  
+  # Customize plot theme
+  theme_pubr(border = TRUE) +
+  theme(
+    axis.text.x = element_text(size = 8, hjust = 0.5),
+    axis.text.y = element_text(size = 8, hjust = 1),
+    legend.position = "top"
+  ) +
+  
+  # Custom color and line types
+  scale_colour_manual(values = cols_compartment) +
+  scale_linetype_manual(values = c("dotted", "solid", "dashed", "longdash")) +
+  
+  # Define x-axis labels
+  scale_x_discrete(limits = c("Fecal", as.character(1:23))) +
+  
+  # Add labels for axes
+  labs(x = "", y = "") +
+  
+  # Facet the plot by metric
+  facet_grid(rows = vars(metric), scales = "free_y", space = "free_x") #+
+  
+  # Apply custom y-axis scale in facets (no labels, just limits)
+  # facetted_pos_scales(y = scales)
+```
+
+
+> Next Analysis 
+
+# Beta Diversity, PCA
+
+```{r, message=FALSE, warning=FALSE}
+
+ord_DataFrame <- read.table("data/raw/02_ord_DataFrame.tsv",  header=T, sep="\t", row.names=1, check.names=T)
+
+ord_DataFrame %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+
+
+```
+
+
+
+<div class="boxy boxy-lightbulb">
+
+### Beta Diversity
+
+</div>
+
+
+
+
+```{r}
+ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment_Unit, shape = Unit)) +
+  geom_point(size = 5) #+ 
+  #scale_shape_manual(values = c(18, 19, 17)) +
+  #theme_pubr(border = TRUE) +
+  #coord_fixed(ratio = 1) 
+```
+
+## Adding color and more nuances
+
+```{r}
+unique(ord_DataFrame$Compartment_Unit)
+
+# compartment Unit
+compartment_unit_col <- c("Fecal" = "#264D59", "AC1" = "#77A515", "TC1" = "#D46C4E", "DC1" = "#43978D", "AC2" = "#77A515", "TC2" = "#D46C4E", "DC2" = "#43978D")
+
+ordplot2 <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment_Unit, shape = Unit)) +
+  geom_hline(yintercept = 0, linetype = 'dashed', alpha = 0.3) + 
+  geom_vline(xintercept = 0, linetype = 'dashed', alpha = 0.3) +
+  geom_point(size = 5) + 
+  #geom_text_repel(aes(label = Study), nudge_x = 0.06, size = 3.0, segment.alpha = 0.5) +
+  scale_shape_manual(values = c(18, 19, 17)) +  
+  theme_pubr(border = TRUE) +
+  coord_fixed(ratio = 1) + # Keep aspect ratio 1:1
+  theme(axis.text = element_text(size = 14),
+        axis.text.x = element_text(size = 12, hjust = 0.5),
+        axis.title.y = element_text(size = 18),
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 0),
+        legend.position = "bottom", #top, null etc
+        axis.title.x = element_text(size = 18),
+        strip.text.x = element_text(size = 20, face = "bold")) +
+        scale_color_manual(values = compartment_unit_col) +
+  labs(x = "PCo1 [45.7%]", y = "PCo2 [19.4%]", color = "Compartment_Unit", shape = "Unit") #+
+  #annotate("text", x = min(ord_DataFrame$X45.7.), y = min(ord_DataFrame$X19.4.), 
+           #label = "Exp2", hjust = 0.1, vjust = 0.4, size = 5, color = "black")
+
+# To view the plot
+print(ordplot2)
+```
+
+
+
+# Heatmap
+
+
+
+# HeatMAp and BarPlot
+
+
+> Step 1: _Filter_ the data: Remove ASVs that do not show appear more than 3 times in more than 30% the samples\
+> Step 2: _Transform_ the data: Relative Abundance\
+
+### HeatMap
+
+
+```{r}
+heat_df <- read.table("data/raw/03_HeatMap_Exp1_DCs.tsv", header=T, sep="\t", row.names=1, check.names=T)
+class(heat_df)
+
+heat_mat <- as.matrix(heat_df)
+class(heat_mat)
+```
+
+# Filter top 20
+
+```{r}
+# Step 1: Calculate row sums or another measure to identify top taxa
+heat_df$Total <- rowSums(heat_df) # or use `rowMeans` if preferred
+
+# Step 2: Filter the top 20 rows based on Total
+top20_data <- heat_df %>%
+  arrange(desc(Total)) %>%
+  slice(1:20) %>%
+  select(-Total)
+
+# Step 3: Convert to matrix for ComplexHeatmap
+data_matrix <- as.matrix(top20_data)
+#data_matrix <- as.matrix(heat_df)
+```
+
+# Plot
+
+```{r}
+library(ComplexHeatmap)
+library(circlize)  # For colorRamp2 function if needed
+
+# Create heatmap with ComplexHeatmap
+Heatmap(data_matrix,
+        name = "Abundance",
+        col = colorRamp2(c(min(data_matrix), median(data_matrix), max(data_matrix)), 
+                         c("blue", "white", "red")),
+        show_row_names = TRUE,
+        show_column_names = TRUE,
+        cluster_rows = TRUE,
+        cluster_columns = TRUE
+)
+```
+
+
+
+## more
+
+```{r}
+# Define sample compartments
+ncol(data_matrix)
+
+# Create Compartment labels for the samples, repeating "DC1" for all columns in data_matrix
+compartment <- rep("DC1", ncol(data_matrix))
+
+# Check if the lengths match
+length(compartment) == ncol(data_matrix)  # Should return TRUE
+
+# Colors for compartments
+compartment_colors <- c("DC1" = "#43978D")
+
+
+# Create the annotation
+sample_annotation <- HeatmapAnnotation(
+    Compartment = compartment,
+    col = list(Compartment = compartment_colors)
+)
+
+# Create the heatmap with the annotation
+Heatmap(
+  data_matrix,
+  name = "Abundance",
+  col = colorRamp2(
+    c(min(data_matrix), median(data_matrix), max(data_matrix)),  # Color scale points
+    c("blue", "white", "red")  # Colors corresponding to min, median, and max values
+  ),
+  show_row_names = TRUE,       # Show row names
+  show_column_names = TRUE,     # Show column names
+  cluster_rows = TRUE,          # Cluster rows
+  cluster_columns = TRUE,       # Cluster columns
+  top_annotation = HeatmapAnnotation(
+    Compartment = anno_simple(
+      compartment,               # Variable for compartment annotation
+      col = compartment_colors   # Custom colors for compartments
+    )
+  )
+)
+```
+
+
+# Pheatmap
+
+```{r}
+## Change colors
+colsHeat<- c("#F7F7F7", "#92C5DE", "#0571B0", "#F4A582", "#CA0020")
+
+# Create an annotation dataframe
+annotation_df <- data.frame(Compartment = compartment)
+
+# Define annotation colors
+annotation_colors <- list(Compartment = c("DC1" = "#43978D"))
+
+# Plot heatmap using pheatmap
+pheatmap(data_matrix,
+         cluster_cols = FALSE,
+         cluster_rows = TRUE,
+         #scale = "column",
+         #gaps_row = 5, 
+         clustering_distance_rows = "euclidean",
+         clustering_distance_cols  = "euclidean",
+         annotation_colors = annotation_colors, 
+         annotation_col = annotation_df,  
+         show_colnames = TRUE,
+         color = colorRampPalette(c(colsHeat))(50),
+         border_color = "#f8edeb",
+         display_numbers = FALSE)
+```
+
+
+
+# Sort and "normalization"
+
+The code is performing a column-wise normalization on data_matrix by dividing each element in a column by the mean of that column. 
+
+> Purpose of the Code
+The result, stored in data, is a transformed version of data_matrix where each column has been scaled so that the average value in each column is 1. This transformation is often done to normalize the data across columns to account for differences in scale or to control for sample-specific variation in abundance data.
+
+```{r}
+
+# Row-wise normalization
+#data <- apply(data_matrix, 1, function(x) { x / mean(x) })
+
+# Column-wise normalization
+data <- apply(data_matrix, 2, function(x) { x / mean(x) })
+
+# Different normalization
+#sequencing_depth <- 20000
+#read_counts_matrix <- data_matrix * sequencing_depth
+# Step 2: Log-normalize each value in the matrix
+#data <- log10(1 + read_counts_matrix) / max(log10(1 + read_counts_matrix))
+
+# Sort by Days
+colnames(data) <- colnames(data)[order(as.numeric(gsub("Exp1_(\\d+).*", "\\1", colnames(data))))]
+
+pheatmap(data,
+         cluster_cols = FALSE,
+         cluster_rows = TRUE,
+         #scale = "column",
+         #gaps_row = 5, 
+         clustering_distance_rows = "euclidean",
+         clustering_distance_cols  = "euclidean",
+         annotation_colors = annotation_colors, 
+         annotation_col = annotation_df,  # Add annotation dataframe here
+         show_colnames = TRUE,
+         color = colorRampPalette(c(colsHeat))(50),
+         border_color = "#f8edeb",
+         display_numbers = FALSE)
+```
+
+
+
+# Iteractive
+
+# Plotly
+
+
+```{r}
+library(plotly)
+# Create the main heatmap for your data
+p <- plot_ly(
+    x = colnames(data),  # Column names as x-axis
+    y = rownames(data),   # Row names as y-axis
+    z = data,             # Data matrix
+    type = "heatmap", 
+    colors = colsHeat,
+    showscale = TRUE,
+    colorbar = list(title = "Abundance")  # Optional colorbar title
+) %>%
+    layout(
+        margin = list(l = 120),  # Space for row names on the left
+        xaxis = list(showticklabels = TRUE, ticks = ""),
+        yaxis = list(tickvals = 1:nrow(data), ticktext = rownames(data))
+    )
+
+p
+
+```
+
+
+```{r}
+# Create the compartment annotation heatmap (only DC1, shown in #43978D)
+compartment_annotation <- rep(0, ncol(data))  # Only 0s for DC1
+
+p_compartment <- plot_ly(
+    x = colnames(data),
+    y = "Compartment",  # Annotation row title
+    z = matrix(compartment_annotation, nrow = 1),  # Annotation as a single-row matrix
+    type = "heatmap",
+    colorscale = list(list(0, "#43978D"), list(1, "#43978D")),  # Fixed color for DC1 only
+    showscale = FALSE  # No colorbar for annotation
+) %>%
+    layout(
+        xaxis = list(showticklabels = TRUE, ticks = ""),
+        yaxis = list(
+            tickvals = c(0),       # Position the annotation title
+            ticktext = "Compartment"
+        )
+    )
+
+# Combine the main heatmap and the annotation strip
+subplot(p_compartment, p, nrows = 2, heights = c(0.1, 0.9), shareX = TRUE)
+```
+
+
+
+# Different package
+
+
+```{r}
+#Iteractive
+
+# Create a heatmap object
+library(heatmaply)
+
+# Create the interactive heatmap
+heatmaply(data,
+          show_dendrogram = c(TRUE, FALSE),  # Cluster rows and columns
+          column_text_angle = 0,  # Orientation of the column labels
+          colors = colorRampPalette(c("#F7F7F7", "#92C5DE", "#0571B0", "#F4A582", "#CA0020"))(50),  # Color scale
+          #scale_fill_gradient_fun = scale_fill_gradient(low = "#F7F7F7", high = "#CA0020"),
+          show_row_names = TRUE,
+          show_column_names = FALSE,
+          annotation_col = data.frame(Compartment = compartment_annotation), # Add the compartment annotation
+          row_text_angle = 0
+)
+```
+
+```{r out.height = "860px", out.width='1000px', echo=F}
+#knitr::include_graphics("/Users/juliana/Documents/NBIS/Projects/6198/March_2023/NEW/dada2/QC/FW_qual_stats.pdf")
+
+#ggsave("/Users/juliana/Documents/NBIS/Projects/6198/March_2023/NEW/R/02_PLOTS_ALLPhylum/06-beta_distance.pdf", Beta_Replicates, width = 14.5, height = 7.58)
+```
+
+
+<!-- --------------------- Do not edit below this ---------------------- -->
+
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+  }
+  .boxy {
+    background-color: #a1c4fd;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  .boxy-lightbulb {
+    color: #31708f;
+ background-color: #d9edf7;
+ border-color: #bce8f1;
+ border-left-color: #31708f;
+  }
+</style>
