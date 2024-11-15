@@ -19,16 +19,49 @@ output:
     css: "assets/report.css"
     staff_web: "https://www.biosustain.dtu.dk/technologies/informatics/data-science-platform"
 ---
+
+```{r,echo=FALSE,include=FALSE}
+#  variables
+rep_org <- "Data Science Platform" 
+rep_core <- "Juliana Assis"
+rep_core_email <- "jasge@dtu.dk"
+```
+
+<br>
+__Organisation:__ `r rep_org`  
+__Responsible:__ `r paste0(rep_core," (",rep_core_email,")")`  
+<br>
+
 <!-- ----------------------- Do not edit above this ----------------------- -->
 
 
 # Introduction to data visualization
 
 
+
+
+```{r, echo=FALSE}
+# List of packages to install
+packages <- c("ggpubr", "grid", "tidyr", "reshape2", "reshape", "ggrepel", "ggh4x", "pheatmap", "RColorBrewer", "patchwork","DT", "kableExtra", "plotly", "bookdown", "heatmaply")
+
+# Install missing packages
+new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load the libraries
+lapply(packages, library, character.only = TRUE)
+
+# BiocManager
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("ComplexHeatmap")
+
+```
+
+
 ```{r, include=FALSE, message=FALSE}
 #Libraries
-library(phyloseq)
-library(microbiome)
 library(ggpubr)
 library(grid)
 library(tidyr)
@@ -39,6 +72,13 @@ library(ggh4x)
 library(pheatmap)
 library(RColorBrewer)
 library(patchwork)
+library(DT)
+library(dplyr)
+library(kableExtra)
+library(ComplexHeatmap)
+library(plotly)
+library(bookdown)
+library(heatmaply)
 ```
 
 
@@ -46,19 +86,58 @@ library(patchwork)
 
 
 ```{r, warning=FALSE, include=FALSE}
-# Define the raw file URLs from the 'main' branch and destination directory
-webpath <- "https://github.com/biosustain/dsp_workshop_datavizR/raw/main/Data/"
-dir.create("./data/raw", recursive = TRUE)
+# Base URLs for each directory on GitHub
+base_urls <- list(
+  "assets" = "https://github.com/biosustain/dsp_workshop_datavizR/raw/main/01_Code/assets/",
+  "assets/fonts" = "https://github.com/biosustain/dsp_workshop_datavizR/raw/main/01_Code/assets/fonts/",
+  "data/raw" = "https://github.com/biosustain/dsp_workshop_datavizR/raw/main/01_Code/data/raw/"
+)
 
-# List of file names to be downloaded
-file_list <- c("01_Alpha_Diversity.tsv", "02_ord_DataFrame.tsv", "03_HeatMap_Exp1_DCs.tsv",
-               "04_HeatMap.rds", "data.csv")
+# List of files to download, organized by subdirectory
+file_paths <- list(
+  "assets" = c(
+    "_footer-lab.Rmd",
+    "_header-lab.Rmd",
+    "logo.png",
+    "logo.svg",
+    "report.css"
+  ),
+  "assets/fonts" = c(
+    "JetBrainsMono-Regular.ttf",
+    "SourceSansPro-Italic.ttf",
+    "SourceSansPro-Regular.ttf",
+    "SourceSansPro-SemiBold.ttf",
+    "SourceSansPro-SemiBoldItalic.ttf"
+  ),
+  "data/raw" = c(
+    "01_Alpha_Diversity.tsv",
+    "02_ord_DataFrame.tsv",
+    "03_HeatMap_Exp1_DCs.tsv",
+    "04_HeatMap.rds",
+    "data.csv"
+  )
+)
 
-# Loop through the files and download them
-for(i in file_list){
-  download.file(url = paste0(webpath, i), 
-                destfile = paste0("./data/raw/", i))
+# Create necessary local directories with the specified structure
+dir.create("./assets/fonts", recursive = TRUE, showWarnings = FALSE)
+dir.create("./data/raw", recursive = TRUE, showWarnings = FALSE)
+
+# Loop through each directory and download files
+for (subdir in names(file_paths)) {
+  for (file_name in file_paths[[subdir]]) {
+    # Construct the full URL for each file
+    url <- paste0(base_urls[[subdir]], file_name)
+    
+    # Define the local destination path
+    dest <- file.path(".", subdir, file_name)
+    
+    # Download the file
+    download.file(url, destfile = dest, mode = "wb")
+  }
 }
+
+message("All files have been downloaded successfully into the specified directory structure!")
+
 
 ```
 
@@ -101,7 +180,7 @@ DT::datatable(data = alpha_info_tab, rownames = TRUE,
 
 ```{r}
 # Load dplyr
-library(dplyr)
+
 
 # Filter the data for Study == "Exp1"
 alpha_info_tab_filtered <- alpha_info_tab %>%
@@ -115,8 +194,8 @@ alpha_info_tab_filtered
 # BoxPlot
 
 ```{r}
-library(dplyr)
-library(ggplot2)
+#library(dplyr)
+#library(ggplot2)
 
 # Filter for Exp1 and create the boxplot
 alpha_info_tab %>%
@@ -178,8 +257,8 @@ alpha_info_tab %>%
 
 
 ```{r}
-library(dplyr)
-library(ggplot2)
+#library(dplyr)
+#library(ggplot2)
 
 test <- alpha_info_tab %>%
   filter(Study == "Exp1") %>%  # Filter for Study "Exp1"
@@ -205,7 +284,7 @@ test <- alpha_info_tab %>%
   ggtitle("Boxplot of Observed Values in Exp1 by Compartment and Units") +
   scale_fill_manual(values = cols_compartment) +  # Apply custom colors
   facet_wrap(~ Units, scales = "free_x")
-
+test
 ```
 
 
@@ -564,7 +643,7 @@ subplot(p_compartment, p, nrows = 2, heights = c(0.1, 0.9), shareX = TRUE)
 # Different package
 
 
-```{r}
+```{r, echo=FALSE, include=FALSE}
 #Iteractive
 
 # Create a heatmap object
