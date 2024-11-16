@@ -140,7 +140,7 @@ library(circlize)
 
 **[Ecological Adaptation and Succession of Human Fecal Microbial Communities in an Automated In Vitro Fermentation System](https://journals.asm.org/doi/full/10.1128/msystems.00232-21)**
 
-> Summary
+**Summary**
 
 Here, by employing 16S rRNA gene amplicon sequencing, we investigated the adaptation and succession of human fecal microbial communities in an automated multistage fermentor. We performed **two independent experiments** using different human donor fecal samples, one configured with **two units** of **three colon compartments each studied for 22 days** and another with one unit of **two colon compartments studied for 31 days**. The fermentor maintained a **trend of increasing microbial alpha diversity along colon compartments**. Within each experiment, microbial compositions followed **compartment-specific trajectories** and reached independent stable configurations. While **compositions were highly similar between replicate units**, they were clearly **separated between different experiments**, showing that they maintained the **individuality of fecal inoculum** rather than converging on a fermentor-specific composition. While some fecal amplicon sequence variants (ASVs) were undetected in the fermentor, many ASVs undetected in the fecal samples flourished in vitro. These bloomer ASVs accounted for significant proportions of the population and included prominent health-associated microbes such as Bacteroides fragilis and Akkermansia muciniphila. Turnover in community compositions is likely explained by feed composition and pH, suggesting that these communities can be easily modulated. Our results suggest that in vitro fermentors are promising tools to study complex microbial communities harboring important members of human gut microbiota.
 
@@ -243,7 +243,7 @@ message("All files have been downloaded successfully into the specified director
 
 
 
-## Loading the Alpha Diversity Data
+# Loading the Alpha Diversity Data
 
 Here, we are loading the alpha diversity data from a TSV file using the `read.table` function.  
 The arguments specify the following:
@@ -270,7 +270,7 @@ alpha_info_tab <- read.table("data/raw/01_Alpha_Diversity.tsv", header=T, sep="\
 ```
 
 
-## Summary: Sample Information
+# Summary: Sample Information
 
 In this section, we will display the `alpha_info_tab` dataset as an interactive table using the `DT` package. The table will include features such as:
 
@@ -295,7 +295,7 @@ DT::datatable(data = alpha_info_tab, rownames = TRUE,
 ```
 
 
-## Filtering the data using dyplr package
+# Filtering the data using dyplr package
 
 This section filters the dataset to include only rows where the `Study` column is equal to `"Exp1"`. The `dplyr` package's `filter()` function is used for this purpose, allowing for easy subsetting of the data. After filtering, we display the dataset.
 
@@ -310,7 +310,7 @@ alpha_info_tab_filtered
 ```
 
 
-## BoxPlot: Our first try
+# BoxPlot: Our first try
 
 **BoxPlot** of Observed Values by Compartment for Exp1
 
@@ -355,7 +355,7 @@ cols_compartment_auto <- setNames(
 ```
 
 
-### Plotting the Boxplot with Custom Colors
+## Plotting the Boxplot with Custom Colors
 
 We filter the data for `Study == "Exp1"` and then reorder the `Compartment` factor levels manually to ensure the boxplot appears in a specific order. The plot is created using `ggplot2`, with compartments on the x-axis and observed values on the y-axis. We apply custom colors to the boxplot using the `scale_fill_manual()` function, which can either use a predefined color vector (`cols_compartment`) or an automatically generated color palette (`cols_compartment_auto`).
 
@@ -383,7 +383,7 @@ alpha_info_tab %>%
 
 
 
-### Facet Wrap and Data Transformation
+## Facet Wrap and Data Transformation
 
 In this section, we filter and transform the data using `dplyr` functions to create a boxplot with the `facet_wrap()` function in `ggplot2`.
 
@@ -427,7 +427,7 @@ test
 ```
 
 
-## Longitudinal Analysis 
+# Longitudinal Analysis 
 
 Here, we are visualizing the longitudinal trends of `Observed` (Richness) and `Shannon` diversity across different time points (`Day`) for the `Exp1` study. The data is reshaped and plotted with several customizations.
 
@@ -498,7 +498,7 @@ alpha_info_tab %>%
 ```
 
 
-## Beta Diversity: Principal Coordinate Analysis (PCoA)
+# Beta Diversity: Principal Coordinate Analysis (PCoA)
 
 In this section, we are focusing on the ordination data to visualize Beta Diversity through Principal Coordinate Analysis (PCoA).
 
@@ -613,7 +613,7 @@ print(ordplot2)
 
 
 
-## Heatmap: Preparing the Data
+# Heatmap: Preparing the Data
 
 In this section, we load and prepare data for heatmap visualization. The distinction between a **data frame** and a **matrix** is important because many heatmap plotting functions, such as those in the `ComplexHeatmap` or `pheatmap` packages, require the input to be in matrix format.
 
@@ -717,7 +717,7 @@ Heatmap(data_matrix,
 ```
 
 
-### Adding Sample Annotations to the Heatmap
+## Adding Sample Annotations to the Heatmap
 
 This section builds upon the previous heatmap by adding annotations for the samples, specifically their compartments. Sample annotations provide additional context to the heatmap, enhancing interpretability.
 
@@ -810,7 +810,6 @@ pheatmap(data_matrix,
 ```
 
 
-
 ## Sort and "normalization"
 
 The code is performing a column-wise normalization on data_matrix by dividing each element in a column by the mean of that column. 
@@ -850,7 +849,7 @@ pheatmap(data,
 ```
 
 
-## Interactive Heatmap with Plotly
+# Interactive Heatmap with Plotly
 
 This section demonstrates how to create an interactive heatmap using the `plotly` package. This approach allows users to interact with the data visualization, enhancing the analysis experience.
 
@@ -956,7 +955,7 @@ subplot(p_compartment, p, nrows = 2, heights = c(0.1, 0.9), shareX = TRUE)
 This section showcases the use of the `heatmaply` package to create an interactive heatmap with enhanced functionality. The focus is on exploring data visually, including options for clustering, color customization, and annotations.
 
 
-```{r, echo=FALSE, include=FALSE}
+```{r, echo=TRUE, include=TRUE, message=FALSE, warning=FALSE}
 #Iteractive
 
 # Create a heatmap object
@@ -975,10 +974,11 @@ heatmaply(data,
 )
 ```
 
-```{r out.height = "860px", out.width='1000px', echo=F}
-#knitr::include_graphics("/Users/juliana/Documents/NBIS/Projects/6198/March_2023/NEW/dada2/QC/FW_qual_stats.pdf")
 
-#ggsave("/Users/juliana/Documents/NBIS/Projects/6198/March_2023/NEW/R/02_PLOTS_ALLPhylum/06-beta_distance.pdf", Beta_Replicates, width = 14.5, height = 7.58)
+# Packages and versions
+
+```{r}
+sessionInfo()
 ```
 
 
