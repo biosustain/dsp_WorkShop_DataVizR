@@ -71,7 +71,7 @@ This section ensures all the necessary R packages for the workshop are installed
 
 ```{r install packages, eval=FALSE, echo=TRUE, include=TRUE, message=FALSE, highlight=TRUE, code_folding="show"}
 # List of packages to install
-packages <- c("ggpubr", "grid", "tidyr", "reshape2", "reshape", "ggrepel", "ggh4x", "pheatmap", "RColorBrewer", "patchwork","DT", "kableExtra", "plotly", "bookdown", "heatmaply")
+packages <- c("ggpubr", "grid", "tidyr", "reshape2", "reshape", "ggrepel", "ggh4x", "pheatmap", "RColorBrewer", "patchwork","DT", "kableExtra", "plotly", "bookdown", "heatmaply", "gganimate", "gifski")
 
 # Install missing packages
 new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
@@ -133,6 +133,9 @@ library(plotly)
 library(bookdown)
 library(heatmaply)
 library(circlize) 
+#Extra
+library(gganimate)
+library(gifski)
 ```
 
 
@@ -610,6 +613,36 @@ ordplot2 <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartmen
 # To view the plot
 print(ordplot2)
 ```
+
+## Extra: Animation
+
+```{r}
+ord_DataFrame$Compartment_Day <- paste(ord_DataFrame$Compartment_Unit, ord_DataFrame$Day, sep = " - ")
+
+# Ensure 'Day' is numeric and sorted
+ord_DataFrame$Day <- as.numeric(as.character(ord_DataFrame$Day))
+ord_DataFrame <- ord_DataFrame[order(ord_DataFrame$Day), ]
+
+# Create the animation
+anim <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment, shape = Unit)) +
+  geom_point(size=5, alpha=0.8) +
+  geom_text_repel(aes(label = sprintf("%.1f", Day)), nudge_x = 0.06, size = 5.0, segment.alpha = 0.8) +  # Format Day to 1 decimal
+  scale_color_manual(values = cols_compartment) +
+  scale_shape_manual(values = c(18, 19, 17)) +
+  theme_pubr(border = TRUE) +
+  theme(legend.position="right") +
+  transition_states(Day) +  # transition in numeric order of Day
+  facet_wrap(~ Study) +
+  ease_aes('linear')
+
+animate(anim, duration = 25, fps = 20, renderer = gifski_renderer())
+
+anim_save("ord.gif")
+
+
+```
+
+
 
 
 
