@@ -42,6 +42,7 @@ Welcome to the **Data Visualization with R Workshop**! Below are two setup optio
    
 7. Load the libraries `r libraries` chuncks (line 117 to 139) and wait for instructions.
 
+### **Option 2: You can also copy and paste the code in your Rstudio**
 Steps 6 and 7:
 ```{r install packages, eval=FALSE, echo=TRUE, include=TRUE, message=FALSE, highlight=TRUE, code_folding="show"}
 # List of packages to install
