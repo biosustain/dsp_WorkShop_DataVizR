@@ -11,11 +11,13 @@ Welcome to the **Data Visualization with R Workshop**! Below are two setup optio
 1. Register at this link to access the cloud environment:  
    [Posit Cloud Workspace](https://posit.cloud/spaces/584455/join?access_code=jZ5MoyyeNTDjZW_7HNZpmSPkJmJujRPE0afYWCeL)
 
-2. Once logged in, open the `01_workshop_codes.html` file from the provided workspace in your favorite browser (preferable google chrome).
+2. Once logged in, **accept to join the workspace**. After that, you'll see the workspace called `Workshop_DataViz_R_DTU_2024`; click to enter and go to the following `Introduction`
 
-3. Read in the HTML file to understand the workshop.
+3. In the bottom right menu, open the `01_workshop_codes.html` file from the provided workspace in your favorite browser (preferable Google Chrome).
 
-4. Open the `01_workshop_codes.Rmd` file from the provided workspace and wait for instructions.
+4. Read in the HTML file to understand the workshop.
+
+5. Open the `01_workshop_codes.Rmd` file from the provided workspace and wait for instructions.
 
 ---
 ## **Option 2: Run Locally**
