@@ -272,7 +272,6 @@ alpha_info_tab <- read.table("data/raw/01_Alpha_Diversity.tsv", header=T, sep="\
 
 ```
 
-
 # Summary: Sample Information
 
 In this section, we will display the `alpha_info_tab` dataset as an interactive table using the `DT` package. The table will include features such as:
@@ -333,7 +332,6 @@ alpha_info_tab %>%
   ggtitle("Boxplot of Observed Values in Exp1 by Compartment") 
 ```
 
-
 ## Sorting by Compartment and Adding Color
 
 In this section, we define two methods for assigning colors to the `Compartment` variable in the dataset.
@@ -382,9 +380,6 @@ alpha_info_tab %>%
   scale_fill_manual(values = cols_compartment)
   #ggsave("BoxPlotTest.png", BoxPlot, width = 8.0, height = 5.5)
 ```
-
-
-
 
 ## Facet Wrap and Data Transformation
 
@@ -541,9 +536,6 @@ DT::datatable(data = ord_DataFrame, rownames = TRUE,
 Beta Diversity
 </div>
 
-
-
-
 ```{r}
 ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment_Unit, shape = Unit)) +
   geom_point(size = 5) #+ 
@@ -614,37 +606,6 @@ ordplot2 <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartmen
 print(ordplot2)
 ```
 
-## Extra: Animation
-
-```{r}
-ord_DataFrame$Compartment_Day <- paste(ord_DataFrame$Compartment_Unit, ord_DataFrame$Day, sep = " - ")
-
-# Ensure 'Day' is numeric and sorted
-ord_DataFrame$Day <- as.numeric(as.character(ord_DataFrame$Day))
-ord_DataFrame <- ord_DataFrame[order(ord_DataFrame$Day), ]
-
-# Create the animation
-anim <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment, shape = Unit)) +
-  geom_point(size=5, alpha=0.8) +
-  geom_text_repel(aes(label = sprintf("%.1f", Day)), nudge_x = 0.06, size = 5.0, segment.alpha = 0.8) +  # Format Day to 1 decimal
-  scale_color_manual(values = cols_compartment) +
-  scale_shape_manual(values = c(18, 19, 17)) +
-  theme_pubr(border = TRUE) +
-  theme(legend.position="right") +
-  transition_states(Day) +  # transition in numeric order of Day
-  facet_wrap(~ Study) +
-  ease_aes('linear')
-
-animate(anim, duration = 25, fps = 20, renderer = gifski_renderer())
-
-anim_save("ord.gif")
-
-
-```
-
-
-
-
 
 # Heatmap: Preparing the Data
 
@@ -714,7 +675,6 @@ top20_data <- heat_df %>%
 
 # Step 3: Convert to matrix for ComplexHeatmap
 data_matrix <- as.matrix(top20_data)
-#data_matrix <- as.matrix(heat_df)
 ```
 
 ## Plotting the Heatmap
@@ -914,12 +874,10 @@ This section demonstrates how to create an interactive heatmap using the `plotly
 
 
 ```{r}
-#library(plotly)
-# Create the main heatmap for your data
 p <- plot_ly(
-    x = colnames(data),  # Column names as x-axis
-    y = rownames(data),   # Row names as y-axis
-    z = data,             # Data matrix
+    x = colnames(data), 
+    y = rownames(data),   
+    z = data,             
     type = "heatmap", 
     colors = colsHeat,
     showscale = TRUE,
@@ -932,7 +890,6 @@ p <- plot_ly(
     )
 
 p
-
 ```
 
 
@@ -983,28 +940,51 @@ subplot(p_compartment, p, nrows = 2, heights = c(0.1, 0.9), shareX = TRUE)
 
 
 
+# Extra: Animation and Iteractive
+
+Extra activities for those who finish the activities or for those who want to do homework
+
+## Extra: Animation
+
+**Animate the PCoA Plot for Beta Diversity**
+
+```{r}
+ord_DataFrame$Compartment_Day <- paste(ord_DataFrame$Compartment_Unit, ord_DataFrame$Day, sep = " - ")
+
+# Ensure 'Day' is numeric and sorted
+ord_DataFrame$Day <- as.numeric(as.character(ord_DataFrame$Day))
+ord_DataFrame <- ord_DataFrame[order(ord_DataFrame$Day), ]
+
+# Create the animation
+anim <- ggplot(ord_DataFrame, aes(x = X45.7., y = X19.4., color = Compartment, shape = Unit)) +
+  geom_point(size=5, alpha=0.8) +
+  geom_text_repel(aes(label = sprintf("%.1f", Day)), nudge_x = 0.06, size = 5.0, segment.alpha = 0.8) +  # Format Day to 1 decimal
+  scale_color_manual(values = cols_compartment) +
+  scale_shape_manual(values = c(18, 19, 17)) +
+  theme_pubr(border = TRUE) +
+  theme(legend.position="right") +
+  transition_states(Day) +  # transition in numeric order of Day
+  facet_wrap(~ Study) +
+  ease_aes('linear')
+
+animate(anim, duration = 25, fps = 20, renderer = gifski_renderer())
+anim_save("ord.gif")
+```
+
 ## Interactive Heatmap Using a Different Package
 
 This section showcases the use of the `heatmaply` package to create an interactive heatmap with enhanced functionality. The focus is on exploring data visually, including options for clustering, color customization, and annotations.
 
 
 ```{r, echo=TRUE, include=TRUE, message=FALSE, warning=FALSE}
-#Iteractive
-
-# Create a heatmap object
-#library(heatmaply)
-
-# Create the interactive heatmap
 heatmaply(data,
           show_dendrogram = c(TRUE, FALSE),  # Cluster rows and columns
-          column_text_angle = 0,  # Orientation of the column labels
-          colors = colorRampPalette(c("#F7F7F7", "#92C5DE", "#0571B0", "#F4A582", "#CA0020"))(50),  # Color scale
-          #scale_fill_gradient_fun = scale_fill_gradient(low = "#F7F7F7", high = "#CA0020"),
+          column_text_angle = 90,  # Orientation of the column labels
+          colors = colorRampPalette(c("#F7F7F7", "#92C5DE", "#0571B0", "#F4A582", "#CA0020"))(50), 
           show_row_names = TRUE,
           show_column_names = FALSE,
-          annotation_col = data.frame(Compartment = compartment_annotation), # Add the compartment annotation
-          row_text_angle = 0
-)
+          annotation_col = data.frame(Compartment = compartment_annotation), 
+          row_text_angle = 0)
 ```
 
 
