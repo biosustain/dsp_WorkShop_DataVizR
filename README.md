@@ -1,4 +1,4 @@
-# Data Visualization with R Workshop, Data Science Platform
+# Data Visualization with R Workshop: Data Science Platform
 
 Welcome to the **Data Visualization with R Workshop**! Below are two setup options:  
 
