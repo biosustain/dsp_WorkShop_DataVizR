@@ -14,7 +14,7 @@ Welcome to the **Data Visualization with R Workshop**! Below are two setup optio
    
 2. Once logged in, **accept to join the workspace**. After that, you'll see the workspace called `Workshop_DataViz_R_DTU_2024`; click to enter and go to the following `Introduction`
 
-3. In the bottom right menu, open the `01_workshop_codes.html` file from the provided workspace in your favorite browser (preferable Google Chrome).
+3. In the bottom right menu, open the `01_workshop_codes.html` file from the provided workspace in your favorite browser (preferable Google Chrome). [01_Code/workshop_R.html](https://html-preview.github.io/?url=https://github.com/biosustain/dsp_workshop_datavizR/blob/main/01_Code/workshop_R.html)
 
 4. Read in the HTML file to understand the workshop.
 
@@ -35,7 +35,7 @@ Welcome to the **Data Visualization with R Workshop**! Below are two setup optio
 
 3. Open the workshop instructions:  
    Open this file in your browser:  
-   [01_Code/workshop_R.html](https://github.com/biosustain/dsp_workshop_datavizR/blob/main/01_Code/workshop_R.html)
+   [01_Code/workshop_R.html](https://html-preview.github.io/?url=https://github.com/biosustain/dsp_workshop_datavizR/blob/main/01_Code/workshop_R.html)
 
 4. Read in the HTML file to understand the workshop.
 
