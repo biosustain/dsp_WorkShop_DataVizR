@@ -9,7 +9,8 @@ Welcome to the **Data Visualization with R Workshop**! Below are two setup optio
 ## **Option 1: Run in the Cloud**
 
 1. Register at this link to access the cloud environment:  
- **I'll share the link tomorrow, look at your email.**
+[Posit Cloud Workspace](https://posit.cloud/spaces/584455/join?access_code=jZ5MoyyeNTDjZW_7HNZpmSPkJmJujRPE0afYWCeL)
+
    
 2. Once logged in, **accept to join the workspace**. After that, you'll see the workspace called `Workshop_DataViz_R_DTU_2024`; click to enter and go to the following `Introduction`
 
